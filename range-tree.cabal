@@ -1,0 +1,68 @@
+name:                range-tree
+version:             1.0
+synopsis:            multidimentional range tree with fractional cascading
+cabal-version:       >=1.18
+category:            Algorithms
+
+flag build-executables
+    description:       Build executables
+    default:           False
+    manual:            True
+
+library
+  exposed-modules:     Data.Range.Tree
+
+  build-depends:       ansi-terminal
+                     , array
+                     , base >= 4.8 && < 5
+                     , containers
+                     , data-default
+                     , exceptions
+                     , extra
+                     , formatting
+                     , hashable
+                     , lens
+                     , mtl
+                     , monad-loops
+                     , monad-control
+                     , QuickCheck >= 2.8.1
+                     , quickcheck-instances
+                     , safe
+                     , text >= 1.2.2.0
+                     , text-format
+                     , transformers >= 0.4.2.0
+                     , transformers-base
+                     , unordered-containers >= 0.2.7
+
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options:         -Wall -fno-warn-orphans
+  default-extensions:  RecordWildCards
+                       OverloadedStrings
+                       DeriveDataTypeable
+                       DeriveGeneric
+                       GeneralizedNewtypeDeriving
+
+test-suite range-tree-test
+  main-is:             Test.hs
+
+  type:                exitcode-stdio-1.0
+  build-depends:       async >= 2.0.1
+                     , base >= 4.8 && < 5
+                     , exceptions >= 0.8.2.1
+                     , hspec >= 2.1.10
+                     , lens >= 4.13
+                     , mtl
+                     , QuickCheck >= 2.8.1
+                     , random >= 1.1
+                     , range-tree
+                     , text >= 1.2.2.0
+                     , text-format
+                     , transformers >= 0.4.2.0
+  hs-source-dirs:      test
+  default-language:    Haskell2010
+  ghc-options:         -threaded -Wall -fno-warn-orphans
+  default-extensions:  OverloadedStrings
+                     , RecordWildCards
+                     , DeriveDataTypeable
+                     , GeneralizedNewtypeDeriving

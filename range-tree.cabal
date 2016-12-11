@@ -3,6 +3,7 @@ version:             1.0
 synopsis:            multidimentional range tree with fractional cascading
 cabal-version:       >=1.18
 category:            Algorithms
+build-type:          Simple
 
 flag build-executables
     description:       Build executables
@@ -28,6 +29,7 @@ library
                      , QuickCheck >= 2.8.1
                      , quickcheck-instances
                      , safe
+                     , vector >= 0.11
                      , text >= 1.2.2.0
                      , text-format
                      , transformers >= 0.4.2.0

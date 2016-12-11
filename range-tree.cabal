@@ -12,6 +12,9 @@ flag build-executables
 
 library
   exposed-modules:     Data.Range.Tree
+  other-modules:       Data.Range.Tree.Class
+                     , Data.Range.Tree.Data
+                     , Data.Range.Tree.Smart
 
   build-depends:       ansi-terminal
                      , array

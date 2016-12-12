@@ -15,6 +15,7 @@ library
   other-modules:       Data.Range.Tree.Class
                      , Data.Range.Tree.Data
                      , Data.Range.Tree.Smart
+                     , Data.Range.Tree.Wrappers
 
   build-depends:       ansi-terminal
                      , array
@@ -50,10 +51,13 @@ library
 
 test-suite range-tree-test
   main-is:             Test.hs
+  other-modules:       Spec
+                       Test.GeneralSpec
 
   type:                exitcode-stdio-1.0
   build-depends:       async >= 2.0.1
                      , base >= 4.8 && < 5
+                     , containers >= 0.5.7
                      , exceptions >= 0.8.2.1
                      , hspec >= 2.1.10
                      , lens >= 4.13
@@ -61,6 +65,7 @@ test-suite range-tree-test
                      , QuickCheck >= 2.8.1
                      , random >= 1.1
                      , range-tree
+                     , vector >= 0.11
                      , text >= 1.2.2.0
                      , text-format
                      , transformers >= 0.4.2.0

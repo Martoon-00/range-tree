@@ -3,12 +3,15 @@ module Data.Range.Tree.Wrappers
     ) where
 
 import Data.Range.Tree.Class (RangeTree (..))
-import Data.Range.Tree.Smart (RawTree)
 
 
 -- * Empty-safe tree
 
 newtype EmptySafe t p = EmptySafe (Maybe (t p))
+
+instance Show (t p) => Show (EmptySafe t p) where
+    show (EmptySafe Nothing)  = "<empty tree>"
+    show (EmptySafe (Just t)) = show t
 
 instance RangeTree t => RangeTree (EmptySafe t) where
     build [] = EmptySafe Nothing

@@ -7,7 +7,7 @@ module Data.Range.Tree.Smart
     ( RawTree
     ) where
 
-import           Control.Lens  (ix, makeLensesFor, singular, view, (^.))
+import           Control.Lens  (makeLensesFor, view, (^.))
 import qualified Data.Foldable as F
 import           Data.List     (sortBy)
 import           Data.Ord      (comparing)
@@ -52,21 +52,35 @@ buildTree points =
   where
     buildTree' :: Ord c => Int -> V.Vector (Point c) -> RawTree (Point c)
     buildTree' dim ps
-        | V.length ps == 1 = Nil
+        | V.length ps == 1 =
+            let _content = ps
+                _left    = Nil
+                _right   = Nil
+                _subtree = mkSubTree
+            in  Node{..}
         | otherwise =
             let (l, r)   = splitByHalf ps
                 _left    = buildTree' dim l
                 _right   = buildTree' dim r
                 _content = merge (comparing getCoord)
                     (_left ^. content) (_right ^. content)
-                _subtree = if dim >= maxDim then Nil else buildTree' (dim + 1) ps
+                _subtree = mkSubTree
             in  Node{..}
       where
-        getCoord = view $ singular (ix dim)
+        getCoord = view $ ixUnsafe dim
+
+        mkSubTree = if dim + 1 >= maxDim then bottomTree else buildTree' (dim + 1) ps
+
+        bottomTree = Node
+            { _content = ps
+            , _left    = Nil
+            , _right   = Nil
+            , _subtree = Nil
+            }
 
     maxDim = dimensions $ V.head points
 
-    -- TODO: redone
+    -- TODO: rework
     merge cmp v1 v2 = fromList $ sortBy cmp $ toList v1 ++ toList v2
 
 

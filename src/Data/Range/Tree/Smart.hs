@@ -9,7 +9,6 @@ module Data.Range.Tree.Smart
 
 import           Control.Lens  (makeLensesFor, view, (^.))
 import qualified Data.Foldable as F
-import           Data.List     (sortBy)
 import           Data.Ord      (comparing)
 import qualified Data.Vector   as V
 import           GHC.Exts      (IsList (..))
@@ -81,7 +80,13 @@ buildTree points =
     maxDim = dimensions $ V.head points
 
     -- TODO: rework
-    merge cmp v1 v2 = fromList $ sortBy cmp $ toList v1 ++ toList v2
+    merge cmp v1 v2 = fromList $ doMerge (toList v1) (toList v2)
+      where
+        doMerge [] ys = ys
+        doMerge xs [] = xs
+        doMerge xs@(x:xr) ys@(y:yr)
+            | cmp x y == LT = x : doMerge xr ys
+            | otherwise     = y : doMerge xs yr
 
 
 splitByHalf :: V.Vector a -> (V.Vector a, V.Vector a)

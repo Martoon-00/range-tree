@@ -3,13 +3,13 @@ module Test.GeneralSpec
     ) where
 
 import           Data.Function   (on)
+import           Data.List       (sort)
 import           Data.Ord        (comparing)
 import           Data.Proxy
-import qualified Data.Set        as S
 import qualified Data.Vector     as V
 import           Test.Hspec      (Spec, describe, it)
-import           Test.QuickCheck (Arbitrary (..), Gen, Property, property, vectorOf,
-                                  whenFail, (===))
+import           Test.QuickCheck (Arbitrary (..), Gen, Property, Small, property,
+                                  vectorOf, whenFail, (===))
 
 import Data.Range.Tree (Point (..), Range (..), RangeTree (..), Tree)
 
@@ -17,27 +17,44 @@ import Data.Range.Tree (Point (..), Range (..), RangeTree (..), Tree)
 spec :: Spec
 spec =
     describe "General" $ do
+        describe "Double" $
+            dimensional (Proxy :: Proxy Double)
+        describe "Int" $
+            dimensional (Proxy :: Proxy Int)
+
+        -- check for processing of equal points
+        describe "Small int" $
+            dimensional (Proxy :: Proxy (Small Int))
+        describe "Bool" $
+            dimensional (Proxy :: Proxy Bool)
+
+  where
+    dimensional p = do
         it "1D" $
-            property $ generalTest (Proxy :: Proxy One)
+            property $ generalTest p (Proxy :: Proxy One)
         it "2D" $
-            property $ generalTest (Proxy :: Proxy Two)
+            property $ generalTest p (Proxy :: Proxy Two)
         it "3D" $
-            property $ generalTest (Proxy :: Proxy Three)
+            property $ generalTest p (Proxy :: Proxy Three)
         it "4D" $
-            property $ generalTest (Proxy :: Proxy Four)
+            property $ generalTest p (Proxy :: Proxy Four)
         it "5D" $
-            property $ generalTest (Proxy :: Proxy Five)
+            property $ generalTest p (Proxy :: Proxy Five)
 
-generalTest :: Proxy n -> [ArbitraryPoint Double n] -> Request Double n -> Property
-generalTest _ pointsArb (Request range) =
+
+generalTest :: (Ord c, Show c)
+            => Proxy c -> Proxy n -> [ArbitraryPoint c n] -> Request c n -> Property
+generalTest _ _ pointsArb (Request range) =
     let points = map (\(ArbitraryPoint p) -> p) pointsArb
-        tree   = build points :: Tree (Point Double)
+        tree   = build points `restrict` (Proxy :: Proxy Tree)
         ans    = find range $ tree
-        nice   = find range $ (build points :: [Point Double])
+        nice   = find range $ build points `restrict` (Proxy :: Proxy [])
         extras = whenFail $ putStrLn $ "Built tree is: " ++ show tree
-    in  extras $ S.fromList (OrderedPoint <$> ans)
-             === S.fromList (OrderedPoint <$> nice)
-
+    in  extras $ sort (OrderedPoint <$> ans)
+             === sort (OrderedPoint <$> nice)
+  where
+    restrict :: t (Point c) -> Proxy t -> t (Point c)
+    restrict = const
 
 -- * Ordered Point
 

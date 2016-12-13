@@ -21,3 +21,5 @@ notifications:
   email:
     recipients:
       - Martoon_00@mail.ru
+    on_success: change
+    on_failure: always

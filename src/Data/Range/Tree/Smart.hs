@@ -7,11 +7,13 @@ module Data.Range.Tree.Smart
     ( RawTree
     ) where
 
-import           Control.Lens  (makeLensesFor, view, (^.))
-import qualified Data.Foldable as F
-import           Data.Ord      (comparing)
-import qualified Data.Vector   as V
-import           GHC.Exts      (IsList (..))
+import           Control.DeepSeq (NFData)
+import           Control.Lens    (makeLensesFor, view, (^.))
+import qualified Data.Foldable   as F
+import           Data.Ord        (comparing)
+import qualified Data.Vector     as V
+import           GHC.Exts        (IsList (..))
+import           GHC.Generics    (Generic)
 
 import Data.Range.Tree.Class (RangeTree (..))
 import Data.Range.Tree.Data  (Belonging (..), Point, Range (..), belong, dimensions,
@@ -25,7 +27,7 @@ data RawTree p
     , _left    :: RawTree p
     , _right   :: RawTree p
     , _subtree :: RawTree p
-    } deriving (Show)
+    } deriving (Show, Generic)
 makeLensesFor [("_content", "content")] ''RawTree
 
 instance F.Foldable RawTree where
@@ -35,6 +37,8 @@ instance (p ~ Point c, Ord c) => IsList (RawTree p) where
     type Item (RawTree p) = p
     fromList = buildTree . fromList
     toList = F.toList
+
+instance NFData p => NFData (RawTree p)
 
 getCoordRange :: Int -> RawTree (Point c) -> Range c
 getCoordRange i (_content -> c) =

@@ -2,7 +2,7 @@
 
 import Control.Lens        ((<&>))
 import Control.Monad.Trans (MonadIO (..))
-import Criterion.Main      (bench, bgroup, defaultMain, whnfIO)
+import Criterion.Main      (bench, bgroup, defaultMain, nfIO)
 import Data.Proxy          (Proxy (..))
 import Test.Commons        (ArbitraryPoint (..), Numeral, Two)
 import Test.QuickCheck     (Arbitrary (..), generate, vectorOf)
@@ -23,7 +23,7 @@ main :: IO ()
 main = defaultMain
     [ bgroup "2D" $
         [10 `power` x :: Int | x <- [2..5]] <&>
-            \n -> bench (show n) $ whnfIO $ withCoord (Proxy :: Proxy Double) $
+            \n -> bench (show n) $ nfIO $ withCoord (Proxy :: Proxy Double) $
                 runBuild n (Proxy :: Proxy Two)
     ]
   where

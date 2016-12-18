@@ -20,8 +20,9 @@ module Data.Range.Tree.Data
     ) where
 
 
-import           Control.Lens (Index, IxValue, Ixed (..), Lens', iso, singular, (^.))
-import qualified Data.Vector  as V
+import           Control.DeepSeq (NFData (..))
+import           Control.Lens    (Index, IxValue, Ixed (..), Lens', iso, singular, (^.))
+import qualified Data.Vector     as V
 
 -- ** Point
 
@@ -34,6 +35,9 @@ instance Ixed (Point c) where
 
 type instance IxValue (Point c) = c
 type instance Index (Point c) = Int
+
+instance NFData c => NFData (Point c) where
+    rnf = rnf . coords
 
 dimensions :: Point c -> Int
 dimensions = V.length . coords

@@ -3,7 +3,7 @@ module Data.Range.Tree.Wrappers
     ) where
 
 import Data.Range.Tree.Class (RangeTree (..))
-
+import Control.DeepSeq (NFData (..))
 
 -- * Empty-safe tree
 
@@ -19,7 +19,5 @@ instance RangeTree t => RangeTree (EmptySafe t) where
 
     find rs (EmptySafe mt) = maybe [] (find rs) mt
 
-
--- * Equal-elements safe tree
-
--- TODO:
+instance NFData (t p) => NFData (EmptySafe t p) where
+    rnf (EmptySafe t) = rnf t

@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 import Control.Lens        ((<&>))
 import Control.Monad.Trans (MonadIO (..))
@@ -23,12 +24,9 @@ main :: IO ()
 main = defaultMain
     [ bgroup "2D" $
         [10 `power` x :: Int | x <- [2..5]] <&>
-            \n -> bench (show n) $ nfIO $ withCoord (Proxy :: Proxy Double) $
-                runBuild n (Proxy :: Proxy Two)
+            \n -> bench (show n) $ nfIO $
+                runBuild @Double n (Proxy :: Proxy Two)
     ]
   where
-    withCoord :: Proxy c -> m (Tree (Point c)) -> m (Tree (Point c))
-    withCoord = const id
-
     power :: Int -> Int -> Int
     power a n = foldr (const (* a)) 1 [1..n]

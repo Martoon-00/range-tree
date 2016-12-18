@@ -53,6 +53,7 @@ library
 test-suite range-tree-test
   main-is:             Test.hs
   other-modules:       Spec
+                       Test.Commons
                        Test.GeneralSpec
 
   type:                exitcode-stdio-1.0

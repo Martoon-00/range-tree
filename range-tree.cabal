@@ -5,8 +5,8 @@ cabal-version:       >=1.18
 category:            Algorithms
 build-type:          Simple
 
-flag build-executables
-    description:       Build executables
+flag benchs
+    description:       Run benchmarks
     default:           False
     manual:            True
 
@@ -102,6 +102,10 @@ test-suite criterion
                      , transformers >= 0.4.2.0
   hs-source-dirs:      bench
                      , test
+  if flag(benchs)
+    buildable:         True
+  else
+    buildable:         False
   default-language:    Haskell2010
   ghc-options:         -threaded -Wall -fno-warn-orphans
   default-extensions:  OverloadedStrings

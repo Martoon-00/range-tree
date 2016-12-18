@@ -16,10 +16,4 @@ before_install:
 install:
 - stack --no-terminal --install-ghc build --only-dependencies --jobs=4
 script:
-- stack --no-terminal build --test --jobs=4
-notifications:
-  email:
-    recipients:
-      - Martoon_00@mail.ru
-    on_success: change
-    on_failure: always
+- stack --no-terminal build --test --jobs=4 --flag range-tree:benchs

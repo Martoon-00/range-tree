@@ -11,4 +11,5 @@ import Data.Range.Tree.Data
 import Data.Range.Tree.Raw
 import Data.Range.Tree.Wrappers
 
+-- | Full working implementation of range-tree algorithm
 type Tree = EmptySafe RawTree

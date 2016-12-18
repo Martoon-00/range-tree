@@ -26,8 +26,9 @@ library
                      , array
                      , base >= 4.8 && < 5
                      , containers
-                     , deepseq >= 1.4.2
                      , data-default
+                     , deepseq >= 1.4.2
+                     , dlist >= 0.8
                      , exceptions
                      , extra
                      , formatting

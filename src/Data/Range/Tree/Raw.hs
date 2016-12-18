@@ -3,7 +3,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 
-module Data.Range.Tree.Smart
+module Data.Range.Tree.Raw
     ( RawTree
     ) where
 

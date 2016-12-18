@@ -19,7 +19,7 @@ library
   exposed-modules:     Data.Range.Tree
   other-modules:       Data.Range.Tree.Class
                      , Data.Range.Tree.Data
-                     , Data.Range.Tree.Smart
+                     , Data.Range.Tree.Raw
                      , Data.Range.Tree.Wrappers
 
   build-depends:       ansi-terminal

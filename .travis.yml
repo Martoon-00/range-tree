@@ -17,3 +17,4 @@ install:
 - stack --no-terminal --install-ghc build --only-dependencies --jobs=4
 script:
 - stack --no-terminal build --test --jobs=4 --flag range-tree:benchs
+    --test-arguments --qc-max-success=10000

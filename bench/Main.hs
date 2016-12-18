@@ -1,11 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TemplateHaskell     #-}
 
 import Control.Lens        ((<&>))
 import Control.Monad.Trans (MonadIO (..))
 import Criterion.Main      (bench, bgroup, defaultMain, nfIO)
 import Data.Proxy          (Proxy (..))
-import Test.Commons        (ArbitraryPoint (..), Numeral, Two)
+import Test.Commons        (ArbitraryPoint (..), Numeral, ordinal)
 import Test.QuickCheck     (Arbitrary (..), generate, vectorOf)
 
 import Data.Range.Tree (Point, RangeTree (..), Tree)
@@ -25,7 +26,7 @@ main = defaultMain
     [ bgroup "2D" $
         [10 `power` x :: Int | x <- [2..5]] <&>
             \n -> bench (show n) $ nfIO $
-                runBuild @Double n (Proxy :: Proxy Two)
+                runBuild @Double n (Proxy @ $(ordinal 2))
     ]
   where
     power :: Int -> Int -> Int

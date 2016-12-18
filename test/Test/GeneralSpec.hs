@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell  #-}
 
 module Test.GeneralSpec
     ( spec
@@ -6,8 +7,8 @@ module Test.GeneralSpec
 
 import Data.List       (sort)
 import Data.Proxy
-import Test.Commons    (ArbitraryPoint, ArbitraryPoint (..), Five, Four, One,
-                        OrderedPoint (..), Request (..), Three, Two)
+import Test.Commons    (ArbitraryPoint, ArbitraryPoint (..),
+                        OrderedPoint (..), Request (..), ordinal)
 import Test.Hspec      (Spec, describe, it)
 import Test.QuickCheck (Property, Small, property, whenFail, (===))
 
@@ -31,15 +32,15 @@ spec =
   where
     dimensional p = do
         it "1D" $
-            property $ generalTest p $ Proxy @One
+            property $ generalTest p $ Proxy @ $(ordinal 1)
         it "2D" $
-            property $ generalTest p $ Proxy @Two
+            property $ generalTest p $ Proxy @ $(ordinal 2)
         it "3D" $
-            property $ generalTest p $ Proxy @Three
+            property $ generalTest p $ Proxy @ $(ordinal 3)
         it "4D" $
-            property $ generalTest p $ Proxy @Four
+            property $ generalTest p $ Proxy @ $(ordinal 4)
         it "5D" $
-            property $ generalTest p $ Proxy @Five
+            property $ generalTest p $ Proxy @ $(ordinal 5)
 
 
 generalTest :: (Ord c, Show c)

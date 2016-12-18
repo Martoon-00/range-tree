@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Test.Commons
     ( -- * Point modifiers
       OrderedPoint (..)
@@ -5,23 +7,21 @@ module Test.Commons
       -- * Type numerals
     , Zero
     , Succ
-    , One
-    , Two
-    , Three
-    , Four
-    , Five
     , Numeral (..)
+    , ordinal
     , withDim
     -- * Request
     , Request (..)
     ) where
 
-import           Data.Function   (on)
-import           Data.Ord        (comparing)
-import qualified Data.Vector     as V
-import           Test.QuickCheck (Arbitrary (..), Gen, vectorOf)
+import           Data.Function       (on)
+import           Data.Ord            (comparing)
+import qualified Data.Vector         as V
+import           Language.Haskell.TH (Q, Type (..))
+import           Test.QuickCheck     (Arbitrary (..), Gen, vectorOf)
 
 import Data.Range.Tree (Point (..), Range (..))
+
 
 -- * Ordered Point
 
@@ -42,12 +42,20 @@ instance Ord c => Ord (OrderedPoint c) where
 data Zero
 data Succ n
 
--- TODO: generate with TH
-type One   = Succ Zero
-type Two   = Succ One
-type Three = Succ Two
-type Four  = Succ Three
-type Five  = Succ Four
+-- | Generates given type-number.
+-- For example,
+-- @
+-- $(ordinal 3)
+-- @
+--
+-- transforms to
+--
+-- @
+-- Succ (Succ (Succ Zero))
+-- @
+ordinal :: Int -> Q Type
+ordinal k = return $ foldr AppT (PromotedT ''Zero) $ replicate k (PromotedT ''Succ)
+
 
 class Numeral n where
     numeral :: n -> Int

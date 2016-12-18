@@ -73,6 +73,7 @@ test-suite range-tree-test
                      , random >= 1.1
                      , range-tree
                      , vector >= 0.11
+                     , template-haskell >= 2.11
                      , text >= 1.2.2.0
                      , text-format
                      , transformers >= 0.4.2.0
@@ -106,6 +107,7 @@ test-suite criterion
                      , random >= 1.1
                      , range-tree
                      , vector >= 0.11
+                     , template-haskell >= 2.11
                      , text >= 1.2.2.0
                      , text-format
                      , transformers >= 0.4.2.0

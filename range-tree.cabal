@@ -5,16 +5,6 @@ cabal-version:       >=1.18
 category:            Algorithms
 build-type:          Simple
 
-flag benchs
-    description:       Run benchmarks
-    default:           False
-    manual:            True
-
-flag tests
-    description:       Run tests
-    default:           True
-    manual:            True
-
 library
   exposed-modules:     Data.Range.Tree
   other-modules:       Data.Range.Tree.Class
@@ -56,7 +46,7 @@ library
                        DeriveGeneric
                        GeneralizedNewtypeDeriving
 
-test-suite range-tree-test
+test-suite tests
   main-is:             Test.hs
   other-modules:       Spec
                        Test.Commons
@@ -79,10 +69,6 @@ test-suite range-tree-test
                      , text-format
                      , transformers >= 0.4.2.0
   hs-source-dirs:      test
-  if flag(tests)
-    buildable:         True
-  else
-    buildable:         False
   default-language:    Haskell2010
   ghc-options:         -threaded -Wall -fno-warn-orphans
   default-extensions:  OverloadedStrings
@@ -90,7 +76,7 @@ test-suite range-tree-test
                      , DeriveDataTypeable
                      , GeneralizedNewtypeDeriving
 
-test-suite criterion
+test-suite benchmarks
   main-is:             Main.hs
   other-modules:       Test.Commons
 
@@ -114,10 +100,6 @@ test-suite criterion
                      , transformers >= 0.4.2.0
   hs-source-dirs:      bench
                      , test
-  if flag(benchs)
-    buildable:         True
-  else
-    buildable:         False
   default-language:    Haskell2010
   ghc-options:         -threaded -Wall -fno-warn-orphans
   default-extensions:  OverloadedStrings

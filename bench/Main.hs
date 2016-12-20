@@ -25,16 +25,15 @@ runBuild num d = do
 
 main :: IO ()
 main = defaultMain $
-    [ bgroup "1D" $ dimensional @ $(ordinal 1) [2..5]
-    , bgroup "2D" $ dimensional @ $(ordinal 2) [2..4]
-    , bgroup "3D" $ dimensional @ $(ordinal 3) [2..4]
-    , bgroup "4D" $ dimensional @ $(ordinal 4) [2..3]
-    , bgroup "5D" $ dimensional @ $(ordinal 5) [2..3]
+    [ bgroup "1D" $ dimensional @ $(ordinal 1) [100, 200 .. 1000]
+    , bgroup "2D" $ dimensional @ $(ordinal 2) [100, 200 .. 1000]
+    , bgroup "3D" $ dimensional @ $(ordinal 3) [100, 200 .. 1000]
+    , bgroup "4D" $ dimensional @ $(ordinal 4) [100, 200 .. 1000]
     ]
   where
     dimensional :: forall d . Numeral d => [Int] -> [Benchmark]
     dimensional numPowers =
-        [ 10 `power` x | x <- numPowers ]
+        [ x | x <- numPowers ]
             <&> \n -> bench (show n) . nfIO $
                 runBuild @Double n (Proxy @d)
 

@@ -24,6 +24,7 @@ import           Control.DeepSeq (NFData (..))
 import           Control.Lens    (Index, IxValue, Ixed (..), Lens', iso, singular, (^.))
 import qualified Data.Vector     as V
 
+
 -- ** Point
 
 newtype Point c = Point
@@ -46,18 +47,6 @@ ixUnsafe :: Ixed m => Index m -> Lens' m (IxValue m)
 ixUnsafe = singular . ix
 
 
--- * Splitter
-
-data PathChoice = LeftPath
-                | RightPath
-    deriving (Enum)
-
-type Splitter p = p -> PathChoice
-
-instance Show (Splitter p) where
-    show _ = "<splitter>"
-
-
 -- * Range
 
 data Range c = Range c c
@@ -76,6 +65,7 @@ data Belonging
     | Partly
     | Disjoint
 
+-- | Whether first range is inside of second
 belong :: Ord c => Range c -> Range c -> Belonging
 belong (Range l r) (Range l' r')
     | l >= l' && r <= r' = Include

@@ -69,12 +69,12 @@ buildTree points =
             let (l, r)   = splitByHalf ps
                 _left    = buildTree' dim l
                 _right   = buildTree' dim r
-                _content = mergeBy (comparing getCoord)
+                _content = mergeBy (comparing curCoord)
                     (_left ^. content) (_right ^. content)
                 _subtree = mkSubTree
             in  Node{..}
       where
-        getCoord = view $ ixUnsafe dim
+        curCoord = view $ ixUnsafe dim
 
         mkSubTree = if dim + 1 < maxDim
                     then buildTree' (dim + 1) ps
@@ -117,7 +117,6 @@ findPoints rs' t' = DL.toList $ findPoints' 0 rs' t'
             Partly   -> findPoints' dim rr _left
                      <> findPoints' dim rr _right
             Disjoint -> mempty
-
 
 instance RangeTree RawTree where
     build = buildTree . V.fromList

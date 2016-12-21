@@ -105,8 +105,8 @@ splitByHalf v
     i = V.length v `div` 2
     (v1, v2) = V.splitAt i v
 
-findPoints :: Ord c => [Range c] -> RawTree (Point c) -> [Point c]
-findPoints rs' t' = DL.toList $ findPoints' 0 rs' t'
+findPoints :: Ord c => RawTree (Point c) -> [Range c] -> [Point c]
+findPoints t' rs' = DL.toList $ findPoints' 0 rs' t'
   where
     findPoints' :: Ord c => Int -> [Range c] -> RawTree (Point c) -> DL.DList (Point c)
     findPoints' _   _           Nil      = mempty

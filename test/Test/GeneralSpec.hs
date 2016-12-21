@@ -48,8 +48,8 @@ generalTest :: (Ord c, Show c)
 generalTest _ _ pointsArb (Request range) =
     let points = map (\(ArbitraryPoint p) -> p) pointsArb
         tree   = build @Tree points
-        ans    = find range $ tree
-        nice   = find range $ build @[] points
+        ans    = find tree range
+        nice   = find (build @[] points) range
         extras = whenFail $ putStrLn $ "Built tree is: " ++ show tree
     in  extras $ sort (OrderedPoint <$> ans)
              === sort (OrderedPoint <$> nice)

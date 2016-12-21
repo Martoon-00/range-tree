@@ -10,9 +10,9 @@ class RangeTree t where
     build :: Ord c => [Point c] -> t (Point c)
 
     -- | Search for points in given multidimentional range
-    find :: Ord c => [Range c] -> t (Point c) -> [Point c]
+    find :: Ord c => t (Point c) -> [Range c] -> [Point c]
 
 -- | Dummy implementation with search for O(n), used in tests as ethalon
 instance RangeTree [] where
     build = id
-    find = filter . pointFit
+    find t rs = filter (pointFit rs) t

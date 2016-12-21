@@ -69,16 +69,16 @@ instance Numeral n => Numeral (Succ n) where
         numPred :: Succ n -> n
         numPred = const undefined
 
-newtype ArbitraryPoint c n = ArbitraryPoint (Point c)
+newtype ArbitraryPoint d c = ArbitraryPoint (Point c)
 
-instance Show c => Show (ArbitraryPoint c n) where
+instance Show c => Show (ArbitraryPoint d c) where
     show (ArbitraryPoint p) = show p
 
-instance (Arbitrary c, Numeral n) => Arbitrary (ArbitraryPoint c n) where
+instance (Arbitrary c, Numeral d) => Arbitrary (ArbitraryPoint d c) where
     arbitrary = withDim $ \n -> ArbitraryPoint . Point . V.fromList
             <$> vectorOf (numeral n) arbitrary
 
-withDim :: (n -> Gen (t c n)) -> Gen (t c n)
+withDim :: (d -> Gen (t d c)) -> Gen (t d c)
 withDim = ($ undefined)
 
 instance (Arbitrary c, Ord c) => Arbitrary (Range c) where
@@ -87,10 +87,10 @@ instance (Arbitrary c, Ord c) => Arbitrary (Range c) where
         b <- arbitrary
         return $ Range (min a b) (max a b)
 
-newtype Request c n = Request [Range c]
+newtype Request d c = Request [Range c]
 
-instance Show c => Show (Request c n) where
+instance Show c => Show (Request d c) where
     show (Request rs) = show rs
 
-instance (Arbitrary c, Ord c, Numeral n) => Arbitrary (Request c n) where
+instance (Arbitrary c, Ord c, Numeral d) => Arbitrary (Request d c) where
     arbitrary = withDim $ \n -> Request <$> vectorOf (numeral n) arbitrary

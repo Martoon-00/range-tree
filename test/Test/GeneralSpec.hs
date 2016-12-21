@@ -18,7 +18,7 @@ import Data.Range.Tree (RangeTree (..), Tree)
 spec :: Spec
 spec =
     describe "General" $ do
-        describe "Double" $  -- TODO: go to ghc8
+        describe "Double" $
             dimensional $ Proxy @Double
         describe "Int" $
             dimensional $ Proxy @Int
@@ -32,20 +32,20 @@ spec =
   where
     dimensional p = do
         it "1D" $
-            property $ generalTest p $ Proxy @ $(ordinal 1)
+            property $ generalTest @_ @ $(ordinal 1) p
         it "2D" $
-            property $ generalTest p $ Proxy @ $(ordinal 2)
+            property $ generalTest @_ @ $(ordinal 2) p
         it "3D" $
-            property $ generalTest p $ Proxy @ $(ordinal 3)
+            property $ generalTest @_ @ $(ordinal 3) p
         it "4D" $
-            property $ generalTest p $ Proxy @ $(ordinal 4)
+            property $ generalTest @_ @ $(ordinal 4) p
         it "5D" $
-            property $ generalTest p $ Proxy @ $(ordinal 5)
+            property $ generalTest @_ @ $(ordinal 5) p
 
 
 generalTest :: (Ord c, Show c)
-            => Proxy c -> Proxy n -> [ArbitraryPoint c n] -> Request c n -> Property
-generalTest _ _ pointsArb (Request range) =
+            => Proxy c -> [ArbitraryPoint d c] -> Request d c -> Property
+generalTest _ pointsArb (Request range) =
     let points = map (\(ArbitraryPoint p) -> p) pointsArb
         tree   = build @Tree points
         ans    = find tree range

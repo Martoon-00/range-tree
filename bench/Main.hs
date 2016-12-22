@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 
 import Control.DeepSeq     (NFData, force)
-import Control.Monad       (join, replicateM)
+import Control.Monad       (join, replicateM, forM)
 import Control.Monad.Trans (MonadIO (..))
 import Criterion.Main      (bench, bgroup, defaultMain, nfIO, Benchmark)
 import Data.Monoid         (Sum (..))
@@ -27,7 +27,7 @@ runBuild num = do
     extractPoint (ArbitraryPoint p) = p
 
 prepareFindBench :: forall d c m . (MonadIO m, Ord c, Arbitrary c, NFData c, Numeral d)
-                  => Int -> Int -> m Benchmark
+                 => Int -> Int -> m Benchmark
 prepareFindBench searches points = do
     -- search for sum of sizes of buckets allows neglect O(|ans|) in evaluation cost
     !tree <- force <$> runBuild @d @c points
@@ -36,15 +36,13 @@ prepareFindBench searches points = do
         Request rs <- generate arbitrary :: IO (Request d c)
         return $ findFold tree (Sum . V.length) rs
 
-type D = Double
-
 main :: IO ()
 main = do
     findBenchs <- sequence
-        [ bgroup "1D" <$> mapM (prepareFindBench @ $(ordinal 1) @D 100 . power 10) [2..4]
-        , bgroup "2D" <$> mapM (prepareFindBench @ $(ordinal 2) @D 100 . power 10) [2..3]
-        , bgroup "3D" <$> mapM (prepareFindBench @ $(ordinal 3) @D 100 . power 10) [2..2]
-        , bgroup "4D" <$> mapM (prepareFindBench @ $(ordinal 4) @D 100 . power 10) [2..2]
+        [ bgroup "1D" <$> benchFinds @ $(ordinal 1) 1000 (power 2 <$> [6..10])
+        , bgroup "2D" <$> benchFinds @ $(ordinal 2) 1000 (power 2 <$> [6..10])
+        , bgroup "3D" <$> benchFinds @ $(ordinal 3) 1000 (power 2 <$> [6..10])
+        , bgroup "4D" <$> benchFinds @ $(ordinal 4) 1000 (power 2 <$> [6..10])
         ]
     defaultMain $
         [ bgroup "build"
@@ -65,7 +63,10 @@ main = do
         ]
   where
     benchBuilds :: forall d . Numeral d => [Int] -> [Benchmark]
-    benchBuilds = fmap $ \n -> bench (show n) . nfIO $ runBuild @d @D n
+    benchBuilds = fmap $ \n -> bench (show n) . nfIO $ runBuild @d @Double n
+
+    benchFinds :: forall d m . (Numeral d, MonadIO m) => Int -> [Int] -> m [Benchmark]
+    benchFinds treeSize findsExp = forM findsExp $ prepareFindBench @d @Double treeSize
 
     power :: Num a => a -> Int -> a
     power _ 0             = 1

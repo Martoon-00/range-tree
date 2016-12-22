@@ -11,6 +11,7 @@ import           Control.DeepSeq (NFData)
 import           Control.Lens    (makeLensesFor, view, (^.))
 import qualified Data.Foldable   as F
 import           Data.List       (intersperse)
+import qualified Data.List       as L
 import           Data.Monoid     (mempty, (<>))
 import           Data.Ord        (comparing)
 import qualified Data.Vector     as V
@@ -81,11 +82,10 @@ buildTree points =
                 _subtree = mkSubTree
             in  Node{..}
         | otherwise =
-            let (l, r)   = splitByHalf ps
+            let _content = V.fromList $ L.sortBy (comparing curCoord) $ V.toList ps
+                (l, r)   = splitByHalf _content
                 _left    = buildTree' dim l
                 _right   = buildTree' dim r
-                _content = mergeBy (comparing curCoord)
-                    (_left ^. content) (_right ^. content)
                 _subtree = mkSubTree
             in  Node{..}
       where
@@ -102,6 +102,7 @@ buildTree points =
 
     maxDim = dimensions $ V.head points
 
+{-
 -- | Merges two sorted vectors to sorted vector, using provided comparator
 mergeBy :: (c -> c -> Ordering) -> V.Vector c -> V.Vector c -> V.Vector c
 mergeBy cmp v1 v2 = fromList $ doMerge (toList v1) (toList v2)
@@ -111,6 +112,7 @@ mergeBy cmp v1 v2 = fromList $ doMerge (toList v1) (toList v2)
     doMerge xs@(x:xr) ys@(y:yr)
         | cmp x y == LT = x : doMerge xr ys
         | otherwise     = y : doMerge xs yr
+-}
 
 splitByHalf :: V.Vector a -> (V.Vector a, V.Vector a)
 splitByHalf v

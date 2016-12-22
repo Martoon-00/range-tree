@@ -1,18 +1,19 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-import Control.DeepSeq     (NFData (..))
+import Control.DeepSeq     (NFData, force)
 import Control.Monad       (join, replicateM)
 import Control.Monad.Trans (MonadIO (..))
 import Criterion.Main      (bench, bgroup, defaultMain, nfIO, Benchmark)
+import Data.Monoid         (Sum (..))
+import qualified Data.Vector         as V
 import Test.Commons        (ArbitraryPoint (..), Numeral, ordinal, Request(..))
 import Test.QuickCheck     (Arbitrary (..), generate, vectorOf)
 
 import Data.Range.Tree (Point, RangeTree (..), Tree)
-
-import Debug.Trace (trace)
 
 -- | Build tree from given amount randomly generated points
 runBuild :: forall d c m . (Ord c, Arbitrary c, Numeral d, MonadIO m)
@@ -28,11 +29,12 @@ runBuild num = do
 prepareFindBench :: forall d c m . (MonadIO m, Ord c, Arbitrary c, NFData c, Numeral d)
                   => Int -> Int -> m Benchmark
 prepareFindBench searches points = do
-    searcher <- find . (rnf *> id) <$> runBuild @d @c points
+    -- search for sum of sizes of buckets allows neglect O(|ans|) in evaluation cost
+    !tree <- force <$> runBuild @d @c points
     let name = show searches ++ "-lookups-in-" ++ show points ++ "-points"
     return $ bench name . nfIO . replicateM searches $ do
         Request rs <- generate arbitrary :: IO (Request d c)
-        return $ searcher rs
+        return $ findFold tree (Sum . V.length) rs
 
 type D = Double
 

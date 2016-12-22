@@ -9,8 +9,8 @@ module Data.Range.Tree.Raw
 
 import           Control.DeepSeq (NFData)
 import           Control.Lens    (makeLensesFor, view, (^.))
-import qualified Data.DList      as DL
 import qualified Data.Foldable   as F
+import           Data.List       (intersperse)
 import           Data.Monoid     (mempty, (<>))
 import           Data.Ord        (comparing)
 import qualified Data.Vector     as V
@@ -21,6 +21,7 @@ import Data.Range.Tree.Class (RangeTree (..))
 import Data.Range.Tree.Data  (Belonging (..), Point, Range (..), belong, dimensions,
                               ixUnsafe)
 
+
 -- | Implementation of range-tree algorithm
 data RawTree p
     = Nil
@@ -29,8 +30,22 @@ data RawTree p
     , _left    :: RawTree p
     , _right   :: RawTree p
     , _subtree :: RawTree p
-    } deriving (Show, Generic)
+    } deriving (Generic)
 makeLensesFor [("_content", "content")] ''RawTree
+
+instance Show p => Show (RawTree p) where
+    show t = "tree\n" ++ show' 2 t
+      where
+        show' d Nil      = replicate d ' ' ++ "-"
+        show' d Node{..} = concat . intersperse "\n" $
+            [ replicate d ' ' ++ show _content
+            , replicate d ' ' ++ "left ="
+            , show' (d + 2) _left
+            , replicate d ' ' ++ "right ="
+            , show' (d + 2) _right
+            , replicate d ' ' ++ "sub ="
+            , show' (d + 2) _right
+            ]
 
 instance F.Foldable RawTree where
     foldMap f = foldMap f . _content
@@ -105,12 +120,12 @@ splitByHalf v
     i = V.length v `div` 2
     (v1, v2) = V.splitAt i v
 
-findPoints :: Ord c => RawTree (Point c) -> [Range c] -> [Point c]
-findPoints t' rs' = DL.toList $ findPoints' 0 rs' t'
+findPoints :: (Monoid m, Ord c)
+           => RawTree (Point c) -> (V.Vector (Point c) -> m) -> [Range c] -> m
+findPoints t' f rs' = findPoints' 0 rs' t'
   where
-    findPoints' :: Ord c => Int -> [Range c] -> RawTree (Point c) -> DL.DList (Point c)
     findPoints' _   _           Nil      = mempty
-    findPoints' _   []          Node{..} = DL.fromList $ toList _content
+    findPoints' _   []          Node{..} = f _content
     findPoints' dim rr@(r:rs) t@Node{..} =
         case getCoordRange dim t `belong` r of
             Include  -> findPoints' (dim + 1) rs _subtree
@@ -120,4 +135,4 @@ findPoints t' rs' = DL.toList $ findPoints' 0 rs' t'
 
 instance RangeTree RawTree where
     build = buildTree . V.fromList
-    find  = findPoints
+    findFold = findPoints

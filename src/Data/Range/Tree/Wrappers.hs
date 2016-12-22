@@ -20,7 +20,7 @@ instance RangeTree t => RangeTree (EmptySafe t) where
     build [] = EmptySafe Nothing
     build ps = EmptySafe . Just $ build ps
 
-    find (EmptySafe mt) rs = maybe [] (flip find rs) mt
+    findFold (EmptySafe mt) f rs = maybe mempty (\t -> findFold t f rs) mt
 
 instance NFData (t p) => NFData (EmptySafe t p) where
     rnf (EmptySafe t) = rnf t

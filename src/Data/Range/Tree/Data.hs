@@ -64,6 +64,7 @@ data Belonging
     = Include
     | Partly
     | Disjoint
+    deriving (Show)
 
 -- | Whether first range is inside of second
 belong :: Ord c => Range c -> Range c -> Belonging

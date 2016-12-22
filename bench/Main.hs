@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-import Control.DeepSeq     (NFData, force)
+import Control.DeepSeq     (NFData, deepseq)
 import Control.Monad       (join, replicateM, forM)
 import Control.Monad.Trans (MonadIO (..))
 import Criterion.Main      (bench, bgroup, defaultMain, nfIO, Benchmark)
@@ -30,19 +30,19 @@ prepareFindBench :: forall d c m . (MonadIO m, Ord c, Arbitrary c, NFData c, Num
                  => Int -> Int -> m Benchmark
 prepareFindBench searches points = do
     -- search for sum of sizes of buckets allows neglect O(|ans|) in evaluation cost
-    !tree <- force <$> runBuild @d @c points
+    tree <- runBuild @d @c points
     let name = show searches ++ "-lookups-in-" ++ show points ++ "-points"
-    return $ bench name . nfIO . replicateM searches $ do
+    return . deepseq tree $ bench name . nfIO . replicateM searches $ do
         Request rs <- generate arbitrary :: IO (Request d c)
         return $ findFold tree (Sum . V.length) rs
 
 main :: IO ()
 main = do
     findBenchs <- sequence
-        [ bgroup "1D" <$> benchFinds @ $(ordinal 1) 1000 (power 2 <$> [6..10])
-        , bgroup "2D" <$> benchFinds @ $(ordinal 2) 1000 (power 2 <$> [6..10])
-        , bgroup "3D" <$> benchFinds @ $(ordinal 3) 1000 (power 2 <$> [6..10])
-        , bgroup "4D" <$> benchFinds @ $(ordinal 4) 1000 (power 2 <$> [6..10])
+        [ bgroup "1D" <$> benchFinds @ $(ordinal 1) 1000 (power 2 <$> [6..17])
+        , bgroup "2D" <$> benchFinds @ $(ordinal 2) 1000 (power 2 <$> [6..15])
+        , bgroup "3D" <$> benchFinds @ $(ordinal 3) 1000 (power 2 <$> [6..12])
+        , bgroup "4D" <$> benchFinds @ $(ordinal 4) 1000 (power 2 <$> [6..11])
         ]
     defaultMain $
         [ bgroup "build"

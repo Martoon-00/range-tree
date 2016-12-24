@@ -31,7 +31,7 @@ import qualified Data.Vector     as V
 
 newtype Point c = Point
     { coords :: V.Vector c
-    } deriving (Show)
+    } deriving (Show, Eq)
 
 instance Ixed (Point c) where
     ix i = iso coords Point . ix i

@@ -5,10 +5,10 @@
 
 module Data.Range.Tree.Raw
     ( RawTree
+    , binSearch
     ) where
 
 import           Control.DeepSeq  (NFData)
-import           Control.Lens     ((^.))
 import qualified Data.Foldable    as F
 import           Data.List        (intersperse)
 import qualified Data.List        as L
@@ -21,8 +21,7 @@ import           GHC.Generics     (Generic)
 
 import Data.Range.Tree.Class (RangeTree (..))
 import Data.Range.Tree.Data  (Belonging (..), Point, Range (..), belong, coord,
-                              dimensions, ixUnsafe)
-
+                              dimensions)
 
 -- | Implementation of range-tree algorithm
 data RawTree p
@@ -42,6 +41,8 @@ instance Show p => Show (RawTree p) where
         show' d Nil      = replicate d ' ' ++ "-"
         show' d Node{..} = concat . intersperse "\n" $
             [ replicate d ' ' ++ show _content
+            , replicate d ' ' ++ "refs ="
+            , replicate d ' ' ++ show _refs
             , replicate d ' ' ++ "left ="
             , show' (d + 2) _left
             , replicate d ' ' ++ "right ="
@@ -64,11 +65,13 @@ asForList :: ([a] -> [b]) -> V.Vector a -> V.Vector b
 asForList f = V.fromList . f . V.toList
 
 -- | Range in which coordinate at given dimension varies
-getCoordRange :: Ord c => Int -> RawTree (Point c) -> Range c
+getCoordRange :: Int -> RawTree (Point c) -> Range c
 getCoordRange i (_ends -> (l, r)) = Range (coord i l) (coord i r)
 
-comparingBackward :: Point c -> Point c -> Ordering
-comparingBackward = undefined
+comparingBackward :: Ord c => Point c -> Point c -> Ordering
+comparingBackward a b = let d     = dimensions a
+                            idc p = map (flip coord p) [d - 1, d - 2 .. 0]
+                        in  comparing idc a b
 
 buildTree :: Ord c => V.Vector (Point c) -> RawTree (Point c)
 buildTree points =
@@ -89,7 +92,7 @@ buildTree points =
                 _ends    = mkEnds
             in  Node{..}
         | otherwise =
-            let _content = asForList (L.sortBy . comparingBackward) ps
+            let _content = asForList (L.sortBy comparingBackward) ps
                 (l, r)   = splitByHalf _content
                 _left    = buildTree' dim l _content
                 _right   = buildTree' dim r _content
@@ -118,11 +121,11 @@ buildTree points =
     -- for each value in contentAbove get minimal index of element in contentHere,
     -- which is equal or more than value, comparing by last coordinate.
     mkRefs contentAbove contentHere =
-        snd $ mapAccumL f (0,  V.toList contentHere) contentAbove
+        snd $ mapAccumL f (0, V.toList contentHere) contentAbove
       where f (k, [])        _ = ((k, []), k)
             f (k, hh@(h:hs)) a
-                | h == a    = ((k,     hh), k    )
-                | otherwise = ((k + 1, hs), k + 1)
+                | h == a    = ((k + 1, hs), k)
+                | otherwise = ((k    , hh), k)
 
 {-
 -- | Merges two sorted vectors to sorted vector, using provided comparator
@@ -146,16 +149,44 @@ splitByHalf v
 
 findPoints :: (Monoid m, Ord c)
            => RawTree (Point c) -> (V.Vector (Point c) -> m) -> [Range c] -> m
-findPoints t' f rs' = findPoints' 0 rs' t'
+findPoints t' f rs' = findPoints' 0 rs' t' searchLastDimRange
   where
-    findPoints' _   _           Nil      = mempty
-    findPoints' _   []          Node{..} = f _content
-    findPoints' dim rr@(r:rs) t@Node{..} =
+    findPoints' _   _           Nil      _      = mempty
+    findPoints' _   []          _        _      = error "findPoints: 0D-range"
+    findPoints' _   (_:[])      Node{..} (l, r) =
+        f $ V.slice l (max 0 $ r - l + 1) _content
+    findPoints' dim rr@(r:rs) t@Node{..} faIdx@(li, ri) =
+        if li > ri then mempty else
         case getCoordRange dim t `belong` r of
-            Include  -> findPoints' (dim + 1) rs _subtree
-            Partly   -> findPoints' dim rr _left
-                     <> findPoints' dim rr _right
+            Include  -> findPoints' (dim + 1) rs _subtree (faIdxGo faIdx t _subtree)
+            Partly   -> findPoints' dim rr _left  (faIdxGo faIdx t _left)
+                     <> findPoints' dim rr _right (faIdxGo faIdx t _right)
             Disjoint -> mempty
+
+    searchLastDimRange =
+        let dim       = length rs' - 1
+            Range l r = last rs'
+            cs        = coord dim <$> _content t'
+        in (binSearch (>= l) cs, binSearch (> r) cs - 1)
+
+    faIdxGo (li, ri) parent child =
+        let newli  = _refs child V.! li
+            newri  = _refs child V.! ri
+            newri' = if Just (_content parent V.! ri) == _content child V.!? newri
+                     then newri
+                     else newri - 1
+        in (newli, newri')
+
+-- | Returns first index where predicate turns to True
+binSearch :: (a -> Bool) -> V.Vector a -> Int
+binSearch p v = search (-1) (V.length v)
+  where
+    search l r
+        | l + 1 == r = r
+        | otherwise  =
+            let m = (l + r) `div` 2
+            in  if p (v V.! m) then search l m
+                               else search m r
 
 instance RangeTree RawTree where
     build = buildTree . V.fromList

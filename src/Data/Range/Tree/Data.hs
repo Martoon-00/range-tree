@@ -9,6 +9,7 @@
 module Data.Range.Tree.Data
     ( Point (..)
     , dimensions
+    , coord
 
     , Range (..)
     , fit
@@ -21,7 +22,8 @@ module Data.Range.Tree.Data
 
 
 import           Control.DeepSeq (NFData (..))
-import           Control.Lens    (Index, IxValue, Ixed (..), Lens', iso, singular, (^.))
+import           Control.Lens    (Index, IxValue, Ixed (..), Lens', iso, singular, view,
+                                  (^.))
 import qualified Data.Vector     as V
 
 
@@ -45,6 +47,9 @@ dimensions = V.length . coords
 
 ixUnsafe :: Ixed m => Index m -> Lens' m (IxValue m)
 ixUnsafe = singular . ix
+
+coord :: Int -> Point c -> c
+coord k = view . singular $ ix k
 
 
 -- * Range

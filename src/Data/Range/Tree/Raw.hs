@@ -68,6 +68,10 @@ asForList f = V.fromList . f . V.toList
 getCoordRange :: Int -> RawTree (Point c) -> Range c
 getCoordRange i (_ends -> (l, r)) = Range (coord i l) (coord i r)
 
+-- | Compares lexicogrphically, from latest coordinate to first.
+-- We don't check fo last coordinate only to preserve following invariant:
+-- in content of child node points follow is same order as in parent node from which
+-- they derive.
 comparingBackward :: Ord c => Point c -> Point c -> Ordering
 comparingBackward a b = let d     = dimensions a
                             idc p = map (flip coord p) [d - 1, d - 2 .. 0]
@@ -93,7 +97,7 @@ buildTree points =
             in  Node{..}
         | otherwise =
             let _content = asForList (L.sortBy comparingBackward) ps
-                (l, r)   = splitByHalf _content
+                (l, r)   = splitByHalf $ asForList (L.sortBy . comparing $ coord dim) ps
                 _left    = buildTree' dim l _content
                 _right   = buildTree' dim r _content
                 _subtree = mkSubTree _content
@@ -166,8 +170,10 @@ findPoints t' f rs' = findPoints' 0 rs' t' searchLastDimRange
     searchLastDimRange =
         let dim       = length rs' - 1
             Range l r = last rs'
-            cs        = coord dim <$> _content t'
-        in (binSearch (>= l) cs, binSearch (> r) cs - 1)
+            cs        = _content t'
+        in ( binSearch (\x -> coord dim x >= l) cs
+           , binSearch (\x -> coord dim x > r) cs - 1
+           )
 
     faIdxGo (li, ri) parent child =
         let newli  = _refs child V.! li

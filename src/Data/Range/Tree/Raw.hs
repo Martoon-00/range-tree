@@ -16,6 +16,7 @@ import           Control.Monad.State (evalState)
 import qualified Data.Foldable       as F
 import           Data.List           (intersperse)
 import qualified Data.List           as L
+import           Data.List.Split     (chunksOf)
 import           Data.Monoid         (mempty, (<>))
 import           Data.Ord            (comparing)
 import           Data.Traversable    (mapAccumL)
@@ -170,8 +171,8 @@ splitByHalf toCmp v
 
 
 findKth :: Ord b => (a -> b) -> V.Vector a -> Int -> a
-findKth toCmp v k
-        let pivot  = findKth toCmp (medianPlain <$> toChunks 5 v) 
+findKth toCmp v k =
+        let pivot  = findMedMed toCmp $ V.toList v
             (l, r) = split (\x -> comparing toCmp x pivot) v
         in  select l r pivot
   where
@@ -180,6 +181,13 @@ findKth toCmp v k
         | k < V.length v - V.length r = pivot
         | otherwise                   =
             findKth toCmp r $ k - (V.length v - V.length r)
+
+findMedMed :: Ord b => (a -> b) -> [a] -> a
+findMedMed _     []     = error "findMedMed: empty list"
+findMedMed _     (x:[]) = x
+findMedMed toCmp xs     = findMedMed toCmp $ plainMed <$> chunksOf 5 xs
+  where
+    plainMed v = L.sortBy (comparing toCmp) v !! (length v `div` 2)
 
 split :: (a -> Ordering) -> V.Vector a -> (V.Vector a, V.Vector a)
 split f v = ( V.filter (\x -> f x == LT) v

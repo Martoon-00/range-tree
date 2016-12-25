@@ -5,19 +5,23 @@
 
 module Data.Range.Tree.Raw
     ( RawTree
-    , binSearch
+    , splitByHalf
+    , findKth
+    , split
     ) where
 
-import           Control.DeepSeq  (NFData)
-import qualified Data.Foldable    as F
-import           Data.List        (intersperse)
-import qualified Data.List        as L
-import           Data.Monoid      (mempty, (<>))
-import           Data.Ord         (comparing)
-import           Data.Traversable (mapAccumL)
-import qualified Data.Vector      as V
-import           GHC.Exts         (IsList (..))
-import           GHC.Generics     (Generic)
+import           Control.DeepSeq     (NFData)
+import           Control.Lens        ((<<-=))
+import           Control.Monad.State (evalState)
+import qualified Data.Foldable       as F
+import           Data.List           (intersperse)
+import qualified Data.List           as L
+import           Data.Monoid         (mempty, (<>))
+import           Data.Ord            (comparing)
+import           Data.Traversable    (mapAccumL)
+import qualified Data.Vector         as V
+import           GHC.Exts            (IsList (..))
+import           GHC.Generics        (Generic)
 
 import Data.Range.Tree.Class (RangeTree (..))
 import Data.Range.Tree.Data  (Belonging (..), Point, Range (..), belong, coord,
@@ -82,7 +86,7 @@ buildTree points =
     if V.length points < 1
         then -- we don't know dimension of tree, so throw error
              error "buildTree: can't build for empty set of points"
-        else buildTree' 0 points V.empty
+        else buildTree' 0 (asForList (L.sortBy comparingBackward) points) V.empty
   where
     buildTree' :: Ord c
                => Int -> V.Vector (Point c) -> V.Vector (Point c) -> RawTree (Point c)
@@ -96,8 +100,8 @@ buildTree points =
                 _ends    = mkEnds
             in  Node{..}
         | otherwise =
-            let _content = asForList (L.sortBy comparingBackward) ps
-                (l, r)   = splitByHalf $ asForList (L.sortBy . comparing $ coord dim) ps
+            let _content = ps
+                (l, r)   = splitByHalf (coord dim) ps
                 _left    = buildTree' dim l _content
                 _right   = buildTree' dim r _content
                 _subtree = mkSubTree _content
@@ -143,13 +147,43 @@ mergeBy cmp v1 v2 = fromList $ doMerge (toList v1) (toList v2)
         | otherwise     = y : doMerge xs yr
 -}
 
-splitByHalf :: V.Vector a -> (V.Vector a, V.Vector a)
-splitByHalf v
+-- | Splits vector to two vectors of approximatelly equal length in stable way,
+-- so that given function on elements of first vector returns less values than
+-- on elements of the second.
+splitByHalf :: Ord b => (a -> b) -> V.Vector a -> (V.Vector a, V.Vector a)
+splitByHalf toCmp v
     | V.length v == 0 = error "splitByHalf: empty vector"
-    | otherwise       = (v1, v2)
+    | otherwise       = let med       = findKth toCmp v $ V.length v `div` 2
+                            (l, _)    = split (\x -> comparing toCmp x med) v
+                            leftLacks = (V.length v `div` 2) - V.length l
+                        in  splitM leftLacks med
   where
-    i = V.length v `div` 2
-    (v1, v2) = V.splitAt i v
+    splitM leftLacks med =
+        ( flip evalState leftLacks $ V.filterM (belongsToLeft med) v
+        , flip evalState leftLacks $ V.filterM (fmap not . belongsToLeft med) v
+        )
+    belongsToLeft med x = case comparing toCmp x med of
+        LT -> return True
+        EQ -> do lacks <- id <<-= 1
+                 return $ lacks > 0
+        GT -> return False
+
+
+findKth :: Ord b => (a -> b) -> V.Vector a -> Int -> a
+findKth toCmp v k
+        let pivot  = findKth toCmp (medianPlain <$> toChunks 5 v) 
+            (l, r) = split (\x -> comparing toCmp x pivot) v
+        in  select l r pivot
+  where
+     select l r pivot
+        | k < V.length l              = findKth toCmp l k
+        | k < V.length v - V.length r = pivot
+        | otherwise                   =
+            findKth toCmp r $ k - (V.length v - V.length r)
+
+split :: (a -> Ordering) -> V.Vector a -> (V.Vector a, V.Vector a)
+split f v = ( V.filter (\x -> f x == LT) v
+            , V.filter (\x -> f x == GT) v )
 
 findPoints :: (Monoid m, Ord c)
            => RawTree (Point c) -> (V.Vector (Point c) -> m) -> [Range c] -> m

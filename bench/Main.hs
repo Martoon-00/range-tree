@@ -46,19 +46,11 @@ main = do
         ]
     defaultMain $
         [ bgroup "build"
-            [ bgroup "linear"
-                [ bgroup "1D" $ benchBuilds @ $(ordinal 1) [100, 200 .. 1000]
-                , bgroup "2D" $ benchBuilds @ $(ordinal 2) [100, 200 .. 1000]
-                , bgroup "3D" $ benchBuilds @ $(ordinal 3) [100, 200 .. 1000]
-                , bgroup "4D" $ benchBuilds @ $(ordinal 4) [100, 200 .. 1000]
-                ]
-            , bgroup "exponential"
-                [ bgroup "1D" $ benchBuilds @ $(ordinal 1) $ power 10 <$> [2..4]
-                , bgroup "2D" $ benchBuilds @ $(ordinal 2) $ power 10 <$> [2..4]
-                , bgroup "3D" $ benchBuilds @ $(ordinal 3) $ power 10 <$> [2..3]
-                , bgroup "4D" $ benchBuilds @ $(ordinal 4) $ power 10 <$> [2..3]
+            [ bgroup "1D" $ benchBuilds @ $(ordinal 1) [1000, 2000 .. 10000]
+            , bgroup "2D" $ benchBuilds @ $(ordinal 2) [500, 1000 .. 4000]
+            , bgroup "3D" $ benchBuilds @ $(ordinal 3) [100, 200 .. 1000]
+            , bgroup "4D" $ benchBuilds @ $(ordinal 4) [100, 200 .. 300]
             ]
-        ]
         , bgroup "find" findBenchs
         ]
   where

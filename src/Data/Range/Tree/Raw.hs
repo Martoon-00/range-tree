@@ -25,8 +25,14 @@ import           GHC.Exts            (IsList (..))
 import           GHC.Generics        (Generic)
 
 import Data.Range.Tree.Class (RangeTree (..))
-import Data.Range.Tree.Data  (Belonging (..), Point, Range (..), belong, coord,
-                              dimensions)
+import Data.Range.Tree.Data
+        ( Belonging (..)
+        , Point
+        , Range (..)
+        , belong
+        , coord
+        , dimensions
+        )
 
 -- | Implementation of range-tree algorithm
 data RawTree p
@@ -73,21 +79,12 @@ asForList f = V.fromList . f . V.toList
 getCoordRange :: Int -> RawTree (Point c) -> Range c
 getCoordRange i (_ends -> (l, r)) = Range (coord i l) (coord i r)
 
--- | Compares lexicogrphically, from latest coordinate to first.
--- We don't check fo last coordinate only to preserve following invariant:
--- in content of child node points follow is same order as in parent node from which
--- they derive.
-comparingBackward :: Ord c => Point c -> Point c -> Ordering
-comparingBackward a b = let d     = dimensions a
-                            idc p = map (flip coord p) [d - 1, d - 2 .. 0]
-                        in  comparing idc a b
-
 buildTree :: Ord c => V.Vector (Point c) -> RawTree (Point c)
 buildTree points =
     if V.length points < 1
         then -- we don't know dimension of tree, so throw error
              error "buildTree: can't build for empty set of points"
-        else buildTree' 0 (asForList (L.sortBy comparingBackward) points) V.empty
+        else buildTree' 0 (asForList (L.sortBy . comparing $ coord maxDim) points) V.empty
   where
     buildTree' :: Ord c
                => Int -> V.Vector (Point c) -> V.Vector (Point c) -> RawTree (Point c)

@@ -92,11 +92,19 @@ buildTree points =
     buildTree' :: Ord c
                => Int -> V.Vector (Point c) -> V.Vector (Point c) -> RawTree (Point c)
     buildTree' dim ps contentAbove
+        | dim == maxDim    =
+            let _content = ps
+                _left    = Nil
+                _right   = Nil
+                _subtree = Nil
+                _refs    = mkRefs contentAbove _content
+                _ends    = mkEnds
+            in  Node{..}
         | V.length ps == 1 =
             let _content = ps
                 _left    = Nil
                 _right   = Nil
-                _subtree = mkSubTree _content
+                _subtree = buildTree' (dim + 1) ps _content
                 _refs    = mkRefs contentAbove _content
                 _ends    = mkEnds
             in  Node{..}
@@ -105,22 +113,11 @@ buildTree points =
                 (l, r)   = splitByHalf (coord dim) ps
                 _left    = buildTree' dim l _content
                 _right   = buildTree' dim r _content
-                _subtree = mkSubTree _content
+                _subtree = buildTree' (dim + 1) ps _content
                 _refs    = mkRefs contentAbove _content
                 _ends    = mkEnds
             in  Node{..}
       where
-        mkSubTree ca = if dim < maxDim
-                       then buildTree' (dim + 1) ps ca
-                       else Node
-                        { _content = ps
-                        , _left    = Nil
-                        , _right   = Nil
-                        , _subtree = Nil
-                        , _refs    = mkRefs contentAbove ca
-                        , _ends    = mkEnds
-                        }
-
         mkEnds = (,) <$> F.minimumBy (comparing $ coord dim)
                      <*> F.maximumBy (comparing $ coord dim) $ ps
 
@@ -159,6 +156,8 @@ splitByHalf toCmp v
                             leftLacks = (V.length v `div` 2) - V.length l
                         in  splitM leftLacks med
   where
+    -- Splits to 2 heaps using `med` as separator. If there are many `med` elements,
+    -- tries to achive balance betwwen heaps using provided `leftLacks`
     splitM leftLacks med =
         ( flip evalState leftLacks $ V.filterM (belongsToLeft med) v
         , flip evalState leftLacks $ V.filterM (fmap not . belongsToLeft med) v

@@ -25,4 +25,4 @@ Becnhmarks are written with help of `criterion` library. Once taking measurement
 
 We have benchmarks for `build` and `find` functions, each cover different dimensions and different sizes of input point set.
 
-You can consider scripts in [bench](https://github.com/Martoon-00/range-tree/tree/master/bench) folder to launch benchmarks; same folder contains sample benchmark results (`.html` files).
+You can consider scripts in [bench](https://github.com/Martoon-00/range-tree/tree/master/bench) folder to launch benchmarks.
